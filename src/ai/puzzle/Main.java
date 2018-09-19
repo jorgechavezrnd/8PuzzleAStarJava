@@ -224,8 +224,10 @@ public class Main {
 		AB.put(obtenerClaveDeEstado(E_Ini.getEstado()), E_Ini);
 		ABIERTOS.add(E_Ini);
 		
+		long startTime = System.nanoTime();
+
 		while (!ABIERTOS.isEmpty() && (EX == false)) {
-			System.out.println("Contador: " + cont++);
+			++cont;
 			Estado Est_Act = ABIERTOS.remove();
 			CERRADOS.add(Est_Act);
 			if (Cond_Term(Est_Act.getEstado(), estadoFinal)) {
@@ -266,9 +268,15 @@ public class Main {
 			}
 		}
 		
+		long endTime = System.nanoTime();
+		long duration = endTime - startTime;
+
+		System.out.println("Contador: " + cont);
+		System.out.println("Estados explorados: " + (ABIERTOS.size() + CERRADOS.size()));
+		System.out.println("Duracion: " + (duration / 1000000) + " milisegundos");
+
 		if (EX) {
 			System.out.println("SI");
-			System.out.println("Estados explorados: " + (ABIERTOS.size() + CERRADOS.size()));
 		} else {
 			System.out.println("NO");
 		}
@@ -277,8 +285,8 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		Integer[][] estadoInicial = { 	{ 7, 3, 5 },
-										{ 4, 2, 0 },
+		Integer[][] estadoInicial = { 	{ 0, 7, 5 },
+										{ 4, 3, 2 },
 										{ 1, 6, 8 }
 									};
 		
