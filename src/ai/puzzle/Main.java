@@ -210,6 +210,22 @@ public class Main {
 		ABIERTOS.add(Est_Gen);
 	}
 
+	public static Estado buscarEnAbiertosYCerrados(Estado Est_Gen, PriorityQueue<Estado> ABIERTOS, PriorityQueue<Estado> CERRADOS) {
+		for (Estado e: ABIERTOS) {
+			if (e.equals(Est_Gen)) {
+				return e;
+			}
+		}
+
+		for (Estado e: CERRADOS) {
+			if (e.equals(Est_Gen)) {
+				return e;
+			}
+		}
+
+		return null;
+	}
+
 	public static ArrayList<String> a_estrella(Integer[][] estadoInicial, Integer[][] estadoFinal) {
 		Estado E_Ini = new Estado(estadoInicial);
 		HashMap<String, Estado> AB = new HashMap<>();
@@ -248,6 +264,7 @@ public class Main {
 							ABIERTOS.add(Est_Gen);
 							AB.put(obtenerClaveDeEstado(Est_Gen.getEstado()), Est_Gen);
 						} else {
+							Est_Gen = buscarEnAbiertosYCerrados(Est_Gen, ABIERTOS, CERRADOS);
 							if (Costo_Temp < Est_Gen.getG()) {
 								Est_Gen.setG(Costo_Temp);
 								Est_Gen.setH(calcular_h(Est_Gen.getEstado(), estadoFinal));
@@ -285,8 +302,8 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		Integer[][] estadoInicial = { 	{ 0, 7, 5 },
-										{ 4, 3, 2 },
+		Integer[][] estadoInicial = { 	{ 7, 3, 5 },
+										{ 4, 2, 0 },
 										{ 1, 6, 8 }
 									};
 		
