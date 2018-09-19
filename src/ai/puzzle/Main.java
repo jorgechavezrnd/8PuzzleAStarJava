@@ -205,32 +205,29 @@ public class Main {
 		return h;
 	}
 
-	public static void Actualizar(PriorityQueue<Estado> ABIERTOS, Estado Est_Gen) {
+	public static void Actualizar(PriorityQueue<Estado> ABIERTOS, HashMap<String, Estado> ABIERTOS_HASH, Estado Est_Gen) {
 		ABIERTOS.remove(Est_Gen);
 		ABIERTOS.add(Est_Gen);
+		ABIERTOS_HASH.put(obtenerClaveDeEstado(Est_Gen.getEstado()), Est_Gen);
 	}
 
-	public static Estado buscarEnAbiertosYCerrados(Estado Est_Gen, PriorityQueue<Estado> ABIERTOS, PriorityQueue<Estado> CERRADOS) {
-		for (Estado e: ABIERTOS) {
-			if (e.equals(Est_Gen)) {
-				return e;
-			}
+	public static Estado buscarEnAbiertosYCerrados(Estado Est_Gen, HashMap<String, Estado> ABIERTOS_HASH, HashMap<String, Estado> CERRADOS_HASH) {
+		
+		Estado e = ABIERTOS_HASH.get(obtenerClaveDeEstado(Est_Gen.getEstado()));
+
+		if (e != null) {
+			return e;
 		}
 
-		for (Estado e: CERRADOS) {
-			if (e.equals(Est_Gen)) {
-				return e;
-			}
-		}
-
-		return null;
+		return CERRADOS_HASH.get(obtenerClaveDeEstado(Est_Gen.getEstado()));
 	}
 
 	public static ArrayList<String> a_estrella(Integer[][] estadoInicial, Integer[][] estadoFinal) {
 		Estado E_Ini = new Estado(estadoInicial);
 		HashMap<String, Estado> AB = new HashMap<>();
 		PriorityQueue<Estado> ABIERTOS = new PriorityQueue<>();
-		PriorityQueue<Estado> CERRADOS = new PriorityQueue<>();
+		HashMap<String, Estado> ABIERTOS_HASH = new HashMap<>();
+		HashMap<String, Estado> CERRADOS_HASH = new HashMap<>();
 		boolean EX = false;
 		ArrayList<String> cam = new ArrayList<>();
 
@@ -239,13 +236,19 @@ public class Main {
 		E_Ini.setPadre(null);
 		AB.put(obtenerClaveDeEstado(E_Ini.getEstado()), E_Ini);
 		ABIERTOS.add(E_Ini);
+		ABIERTOS_HASH.put(obtenerClaveDeEstado(E_Ini.getEstado()), E_Ini);
 		
 		long startTime = System.nanoTime();
 
 		while (!ABIERTOS.isEmpty() && (EX == false)) {
 			++cont;
+			if (ABIERTOS.size() != ABIERTOS_HASH.size()) {
+				System.out.println("HOLA MUNDO!!!!!!!!!!!");
+				break;
+			}
 			Estado Est_Act = ABIERTOS.remove();
-			CERRADOS.add(Est_Act);
+			ABIERTOS_HASH.remove(obtenerClaveDeEstado(Est_Act.getEstado()));
+			CERRADOS_HASH.put(obtenerClaveDeEstado(Est_Act.getEstado()), Est_Act);
 			if (Cond_Term(Est_Act.getEstado(), estadoFinal)) {
 				cam = ConstruirCamino(AB, Est_Act);
 				EX = true;
@@ -256,26 +259,27 @@ public class Main {
 					Estado Est_Gen = Aplicar(R, Est_Act.getEstado());
 					if (noEsAncestroDeEnAB(Est_Gen, Est_Act, AB)) {
 						double Costo_Temp = Est_Act.getG() + Costo(Est_Act, Est_Gen);
-						if (!ABIERTOS.contains(Est_Gen) && !CERRADOS.contains(Est_Gen)) {
+						if (!ABIERTOS_HASH.containsKey(obtenerClaveDeEstado(Est_Gen.getEstado())) && !CERRADOS_HASH.containsKey(obtenerClaveDeEstado(Est_Gen.getEstado()))) {
 							Est_Gen.setG(Costo_Temp);
 							Est_Gen.setH(calcular_h(Est_Gen.getEstado(), estadoFinal));
 							Est_Gen.setF(Est_Gen.getG() + Est_Gen.getH());
 							Est_Gen.setPadre(obtenerClaveDeEstado(Est_Act.getEstado()));
 							ABIERTOS.add(Est_Gen);
+							ABIERTOS_HASH.put(obtenerClaveDeEstado(Est_Gen.getEstado()), Est_Gen);
 							AB.put(obtenerClaveDeEstado(Est_Gen.getEstado()), Est_Gen);
 						} else {
-							Est_Gen = buscarEnAbiertosYCerrados(Est_Gen, ABIERTOS, CERRADOS);
+							Est_Gen = buscarEnAbiertosYCerrados(Est_Gen, ABIERTOS_HASH, CERRADOS_HASH);
 							if (Costo_Temp < Est_Gen.getG()) {
 								Est_Gen.setG(Costo_Temp);
 								Est_Gen.setH(calcular_h(Est_Gen.getEstado(), estadoFinal));
 								Est_Gen.setF(Est_Gen.getG() + Est_Gen.getH());
 								Est_Gen.setPadre(obtenerClaveDeEstado(Est_Act.getEstado()));
 								AB.put(obtenerClaveDeEstado(Est_Gen.getEstado()), Est_Gen);
-								if (ABIERTOS.contains(Est_Gen)) {
-									Actualizar(ABIERTOS, Est_Gen);
+								if (ABIERTOS_HASH.containsKey(obtenerClaveDeEstado(Est_Gen.getEstado()))) {
+									Actualizar(ABIERTOS, ABIERTOS_HASH, Est_Gen);
 								}
-								if (CERRADOS.contains(Est_Gen)) {
-									CERRADOS.remove(Est_Gen);
+								if (CERRADOS_HASH.containsKey(obtenerClaveDeEstado(Est_Gen.getEstado()))) {
+									CERRADOS_HASH.remove(obtenerClaveDeEstado(Est_Gen.getEstado()));
 									ABIERTOS.add(Est_Gen);
 								}
 							}
@@ -289,7 +293,7 @@ public class Main {
 		long duration = endTime - startTime;
 
 		System.out.println("Contador: " + cont);
-		System.out.println("Estados explorados: " + (ABIERTOS.size() + CERRADOS.size()));
+		System.out.println("Estados explorados: " + (ABIERTOS.size() + CERRADOS_HASH.size()));
 		System.out.println("Duracion: " + (duration / 1000000) + " milisegundos");
 
 		if (EX) {
